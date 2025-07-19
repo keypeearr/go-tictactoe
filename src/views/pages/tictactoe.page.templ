@@ -1,0 +1,146 @@
+package pages
+
+import "github.com/keypeearr/tictactoe/src/views/layouts"
+import "github.com/keypeearr/tictactoe/src/views/props"
+import "fmt"
+import "github.com/keypeearr/tictactoe/src/models"
+
+templ Tictactoe(p props.TictactoePageProps) {
+	@layouts.Main(p.MainLayoutProps) {
+		<div class="main-container">
+			if p.Game == nil {
+				@MainMenu(p.Game)
+			} else {
+				@Game(*p.Game)
+			}
+		</div>
+		<div class="error-container"></div>
+		<div class="message-container">test</div>
+	}
+}
+
+templ Message(msg string) {
+	{ msg }
+}
+
+templ Error(err error) {
+	{ err.Error() }
+}
+
+templ MainMenu(game *models.Game) {
+	<div class="menu-container">
+		<div class="game-title">Tic Tac Toe</div>
+		if game != nil {
+			<button
+				class="btn continue-btn"
+				hx-post="/api/v1/tictactoe/continue"
+				hx-target=".main-container"
+				hx-target-50*=".error-container"
+				hx-on="click"
+				hx-swap="innerHTML"
+			>
+				Continue
+			</button>
+		}
+		<button
+			class="btn start-btn"
+			hx-post="/api/v1/tictactoe/start"
+			hx-target=".main-container"
+			hx-target-50*=".error-container"
+			hx-on="click"
+			hx-swap="innerHTML"
+		>
+			Start New Game
+		</button>
+		<button
+			class="btn history-btn"
+			hx-post="/api/v1/tictactoe/history"
+			hx-target=".main-container"
+			hx-target-50*=".error-container"
+			hx-on="click"
+			hx-swap="innerHTML"
+		>
+			History
+		</button>
+	</div>
+}
+
+templ Game(game models.Game) {
+	<div class="game-container">
+		<div>
+			PLAYER 1 
+			if res := game.Result; res == models.GAME_RESULT["P1 WIN"] {
+				- WINNER
+			} else if res == models.GAME_RESULT["DRAW"] {
+				- DRAW
+			}
+		</div>
+		@BoardDisplay(game.Board)
+		<div>
+			PLAYER 2
+			if res := game.Result; res == models.GAME_RESULT["P2 WIN"] {
+				- WINNER
+			} else if res == models.GAME_RESULT["DRAW"] {
+				- DRAW
+			}
+		</div>
+	</div>
+	<div>
+		if status := game.Status; status == models.GAME_STATUS["ON-GOING"] {
+			<button
+				class="btn reset-btn"
+				hx-post="/api/v1/tictactoe/reset"
+				hx-target=".main-container"
+				hx-target-50*=".error-container"
+				hx-on="click"
+				hx-swap="innerHTML"
+			>
+				Reset
+			</button>
+		} else if status == models.GAME_STATUS["COMPLETED"] {
+			<button
+				class="btn new-btn"
+				hx-post="/api/v1/tictactoe/new"
+				hx-target=".main-container"
+				hx-target-50*=".error-container"
+				hx-on="click"
+				hx-swap="innerHTML"
+			>
+				New Game
+			</button>
+		}
+		<button
+			class="btn menu-btn"
+			hx-post="/api/v1/tictactoe/menu"
+			hx-target=".main-container"
+			hx-target-50*=".error-container"
+			hx-on="click"
+			hx-swap="innerHTML"
+		>
+			Go Back
+		</button>
+	</div>
+}
+
+templ BoardDisplay(board string) {
+	<div class="board">
+		for index, mark := range board {
+			<div
+				class="box"
+				hx-post={ fmt.Sprintf("/api/v1/tictactoe/mark/%d", index) }
+				hx-target=".main-container"
+				hx-target-50*=".error-container"
+				hx-trigger="click"
+				hx-swap="innerHTML"
+			>
+				if m := string(mark); m != "-" {
+					@Board(m)
+				}
+			</div>
+		}
+	</div>
+}
+
+templ Board(mark string) {
+	{ mark }
+}
